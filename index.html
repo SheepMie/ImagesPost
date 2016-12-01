@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="x5-fullscreen" content="true">
+    <meta name="x5-page-mode" content="app">
+    <title>多图上传</title>
+    <script src="dist/jquery-1.8.0.min.js"></script>
+    <style>
+    body {
+        margin: 0;
+    }
+    
+    .xu-footer {
+        position: fixed;
+        bottom: 0;
+        height: 50px;
+        border-top: 1px solid #ccc;
+        width: 100%;
+        background: #666
+    }
+    
+    .xu-footer span {
+        display: inline-block;
+        width: 50%;
+        float: left;
+        height: 100%;
+        position: relative;
+        color: #fff;
+    }
+    
+    #inputImage {
+        width: 100%;
+        opacity: 0;
+        height: 50px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+    }
+    
+    .input-sure,
+    .input-box {
+        font-size: 18px;
+        line-height: 50px;
+        text-align: center;
+    }
+    
+    .img-container {
+        height: 100%;
+        background: #999;
+        background-repeat: no-repeat;
+        background-size: cover;
+    }
+    
+    .AddBox img {
+        width: 100px;
+        height: 100px;
+    }
+    </style>
+</head>
+
+<body>
+    <div class="img-container">
+        <div class="AddBox"></div>
+    </div>
+    <div class="xu-footer">
+        <span class="input-box">
+            选择图片
+           <input type="file" id="inputImage" name="file" multiple onchange="setImagePreviews()"> <!--accept="image/*"-->
+        </span>
+        <span class="input-sure">
+           确定
+        </span>
+    </div>
+</body>
+<script>
+
+var blobarry = [];
+function setImagePreviews(avalue) {
+    var docObj = document.getElementById("inputImage");
+
+    var str = "";
+    var fileList = docObj.files;
+    for (var i = 0; i < fileList.length; i++) {
+        /*str+= "<div class='PicBox' id='img" + i + "'  style='background-image:url("")'></div>";*/
+        str += "<img class='image'  src=" + window.URL.createObjectURL(docObj.files[i]) + ">"     /*id='img" + i + "'*/
+    }
+    $(".AddBox").append(str);
+    for (var i = 0; i < fileList.length; i++) {
+        imgchange(window.URL.createObjectURL(docObj.files[i]))
+    }
+    imgclick();
+}
+
+function imgchange(url){
+    var docObj = document.getElementById("inputImage");
+    var imglength = $(".AddBox img").length;
+    //var blob = $("#img0").attr("src");
+    //console.log(url);
+    var img = new Image();
+    img.src = url;
+    img.onload = function(){
+        var imgwidth = img.width;
+        var imgheight = img.height;
+        convertToData(url, imgwidth, imgheight, function(basechar){
+            var useblob = dataURItoBlob(basechar);
+            //console.log(useblob);
+            blobarry.push(useblob);
+            console.log(blobarry);
+        })
+    }
+}
+
+/*上传获取blobarry*/
+$(".input-sure").click(function() {
+    var formData = new FormData();
+    for(var i=0;i<blobarry.length;i++){
+        formData.append('file', blobarry[i],'image.png');
+        console.log(blobarry[i]);
+    }
+    post(formData)
+})
+
+/*创建canvas*/
+function convertToData(url, imgwidth, imgheight, callback) {
+    var cropw = imgwidth; // 剪切的宽
+    var croph = imgheight; // 剪切的宽
+    var canvas = document.createElement("canvas");
+    var ctx = canvas.getContext('2d');
+    canvas.width = cropw;
+    canvas.height = croph;
+    var canvasimg = new Image();
+    //img.crossOrigin='*';
+    canvasimg.src = url;
+    canvasimg.onload = function() {
+        this.width = cropw;
+        this.height = croph;
+        // 这里主要是懂得canvas与图片的裁剪之间的关系位置
+        ctx.drawImage(this, 0, 0, this.width, this.height);
+        var base64 = canvas.toDataURL('image/jpeg', 0.6); 
+        //console.log(base64);
+        // 这里的“1”是指的是处理图片的清晰度（0-1）之间，当然越小图片越模糊，处理后的图片大小也就越小
+        callback && callback(base64) // 回调base64字符串
+    }
+}
+
+/*上传*/
+/*function post(formData) {
+    $.ajax({
+        url: 'http://192.168.1.132/SwiftTTZ/api/User/UpdateForImage',
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        beforeSend: function(xhr) {
+            xhr.setRequestHeader('Authorization', "7B7327631293E4D0D5FD587578DC7CED060DA00AF2116016334CA9146D61E26FA41207D106DC4FAAA08B627D8A1ED8A1BE15A3AB62DFB93FB34E6BD0821C45B2")
+        },
+        success: function() {
+            alert("success")
+                //sessionStorage.removeItem("topimg");
+                //location.href="User-mg.html";
+        },
+        error: function() {
+            console.log('Upload error');
+        }
+    });
+}*/
+/*转成blob*/
+function dataURItoBlob(dataURI) {           //转二进制，便于上传
+    var byteString = atob(dataURI.split(',')[1]);
+    var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+    var ab = new ArrayBuffer(byteString.length);
+    var ia = new Uint8Array(ab);
+    for (var i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], {type: mimeString});
+}
+
+//删除图片
+function imgclick(){
+    $('.image').unbind('click').bind('click',function(){
+        if(confirm("确定删除？"))
+    {
+        blobarry.splice($('.image').index(this),1);
+        $(this).remove();
+        console.log(blobarry);
+     }
+    else
+    {
+      //alert("你按了取消，那就是返回false");
+    }
+})
+}
+    
+
+
+</script>
+<!-- <script src="dist/main.js"></script> -->
+
+</html>
