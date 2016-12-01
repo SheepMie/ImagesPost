@@ -72,14 +72,15 @@
     <div class="xu-footer">
         <span class="input-box">
             选择图片
-           <input type="file" id="inputImage" name="file" multiple onchange="setImagePreviews()"> <!--accept="image/*"-->
+           <input type="file" id="inputImage" name="file" multiple > <!--onchange="setImagePreviews()"accept="image/*"-->
         </span>
         <span class="input-sure">
            确定
         </span>
     </div>
 </body>
-<script>
+<script src="dist/post.js"></script>
+<!-- <script>
 
 var blobarry = [];
 function setImagePreviews(avalue) {
@@ -143,7 +144,7 @@ function convertToData(url, imgwidth, imgheight, callback) {
         this.height = croph;
         // 这里主要是懂得canvas与图片的裁剪之间的关系位置
         ctx.drawImage(this, 0, 0, this.width, this.height);
-        var base64 = canvas.toDataURL('image/jpeg', 0.6); 
+        var base64 = canvas.toDataURL('image/jpeg', 0.6);   
         //console.log(base64);
         // 这里的“1”是指的是处理图片的清晰度（0-1）之间，当然越小图片越模糊，处理后的图片大小也就越小
         callback && callback(base64) // 回调base64字符串
@@ -201,7 +202,6 @@ function imgclick(){
     
 
 
-</script>
-<!-- <script src="dist/main.js"></script> -->
+</script> -->
 
 </html>
